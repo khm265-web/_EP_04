@@ -1,0 +1,74 @@
+{
+  "CHAR_A_REF_SHEET": {
+    "file": "CHAR_A_REF_SHEET.png",
+    "note": "主角"
+  },
+  "CHAR_B_REF_SHEET": {
+    "file": "CHAR_B_REF_SHEET.png",
+    "note": "主角鏡像"
+  },
+  "CHAR_C1_REF_SHEET": {
+    "file": "CHAR_C1_REF_SHEET.png",
+    "note": "圍觀群眾A"
+  },
+  "CHAR_C2_REF_SHEET": {
+    "file": "CHAR_C2_REF_SHEET.png",
+    "note": "圍觀群眾B"
+  },
+  "CHAR_C_REF_SHEET": {
+    "file": "CHAR_C_REF_SHEET.png",
+    "note": "雪景．第二層對手"
+  },
+  "CHAR_D_REF_SHEET": {
+    "file": "CHAR_D_REF_SHEET.png",
+    "note": "酒店．第一層對手"
+  },
+  "LOC_SC_01_HOTEL_V2": {
+    "file": "LOC_SC_01_HOTEL_V2.png",
+    "note": "高檔酒店中庭場景圖"
+  },
+  "LOC_SC_03_LIMBO": {
+    "file": "LOC_SC_03_LIMBO.png",
+    "note": "Limbo場景圖"
+  },
+  "LOC_SC_04A_TRAIN": {
+    "file": "LOC_SC_04A_TRAIN.png",
+    "note": "地鐵場景圖"
+  },
+  "LOC_SC_04_OFFICE": {
+    "file": "LOC_SC_04_OFFICE.png",
+    "note": "辦公室場景圖"
+  },
+  "LOC_SC_05_PARK": {
+    "file": "LOC_SC_05_PARK.png",
+    "note": "公園場景圖"
+  },
+  "LOC_SC_02_SNOW": {
+    "file": "LOC_SC_02_SNOW.png",
+    "note": "雪山軍事要塞場景圖"
+  },
+  "PROP_A_REF_SHEET": {
+    "file": "PROP_A_REF_SHEET.png",
+    "note": "主角用陀螺與發射器 道具參考圖"
+  },
+  "PROP_B_REF_SHEET": {
+    "file": "PROP_B_REF_SHEET.png",
+    "note": "主角鏡像用陀螺與發射器 道具參考圖"
+  },
+  "PROP_C_REF_SHEET": {
+    "file": "PROP_C_REF_SHEET.png",
+    "note": "第一層對手用陀螺與發射器 道具參考圖"
+  },
+  "PROP_D_REF_SHEET": {
+    "file": "PROP_D_REF_SHEET.png",
+    "note": "第二層對手用陀螺與發射器 道具參考圖"
+  },
+  "PROP_E_REF_SHEET": {
+    "file": "PROP_E_REF_SHEET.png",
+    "note": "場1-3 對戰陀螺盤連大底座 道具參考圖"
+  },
+  "PROP_F_REF_SHEET": {
+    "file": "PROP_F_REF_SHEET.png",
+    "note": "公園垃圾桶中的陀螺盤 道具參考圖"
+  }
+}
