@@ -1,0 +1,11 @@
+{
+    "name": "JOB13_SC_13B",
+    "active": false,
+    "selected": ["PROP_2"],
+    "mode": "REFERENCE",
+    "ratio": "9:16",
+    "duration": 4,
+    "resolution": "480p",
+    "seed": 2026,
+    "audio": ""
+}
