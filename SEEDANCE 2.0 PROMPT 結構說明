@@ -1,0 +1,44 @@
+SEEDANCE 2.0 PROMPT 結構說明
+================================
+
+JOB 與 SHOT 關係
+----------------
+- 1 JOB = 1條 Seedance 生成影片
+- 單次生成上限 15s
+- 1個JOB可含1~N個SHOT，SHOT時長總和 ≤15s
+- 排JOB時計算：最尾SHOT剩餘時長唔夠就搬去下一個JOB，唔好硬塞
+- 多於1個SHOT時，SHOT之間用 "CUT TO" 分隔
+- SHOT有對白就直接寫入該SHOT段落
+
+STYLE BLOCK（固定文字）
+----------------------
+2D hand-drawn anime in the style of Satoshi Kon's Paprika (Madhouse; character design Masashi Ando, art direction Nobutaka Ike). 9:16 vertical, cinematic restrained composition.
+
+（其後可再加：光影/色調/preventative clauses）
+
+Prompt Template
+---------------
+2D hand-drawn anime in the style of Satoshi Kon's Paprika (Madhouse; character design Masashi Ando, art direction Nobutaka Ike). 9:16 vertical, cinematic restrained composition.
+[其餘STYLE設定：光影/色調/preventative clauses]
+
+{SCENE_XX}
+[場景描述 — 地點、固定視覺元素、氛圍，跨SHOT共用]
+
+SHOT 1 — [Xs]
+[鏡頭/構圖/角色動作/對白(如有)]
+
+CUT TO
+
+SHOT 2 — [Xs]
+[鏡頭/構圖/角色動作/對白(如有)]
+
+[...累計最多15s...]
+
+Audio: {AUDIO}, NO BGM
+Negative: [技術性負面詞], [誤判類負面詞], [光影/色彩限制]
+
+JOB拆分邏輯範例
+--------------
+SHOT1  4s  -> JOB1
+SHOT2  6s  -> JOB1（累計10s）
+SHOT3  7s  -> 超出15s，移至JOB2
