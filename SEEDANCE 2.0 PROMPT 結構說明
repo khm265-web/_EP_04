@@ -1,6 +1,12 @@
 SEEDANCE 2.0 PROMPT 結構說明
 ================================
 
+專案背景
+--------
+AI生成影像技術方案，建立/優化Python pipeline，
+透過指定AI模型API執行圖片/影片生成工作。
+API來源：FAL.AI、BytePlus
+
 JOB 與 SHOT 關係
 ----------------
 - 1 JOB = 1條 Seedance 生成影片
@@ -36,6 +42,17 @@ SHOT 2 — [Xs]
 
 Audio: {AUDIO}, NO BGM
 Negative: [技術性負面詞], [誤判類負面詞], [光影/色彩限制]
+
+{KEY} Tag 規則（Asset對應）
+--------------------------
+1. Prompt文字入面用 {KEY} tag（如 {CHAR_A}, {PROP_2}）標記邊個角色/物件出現喺邊
+2. {KEY} 要對應 assets.json 入面既key
+3. JSON既 selected array 順序 = tag被resolve做 image1/image2... 既順序
+4. 每次要同時輸出：
+   (a) prompt文字（含{KEY} tag）
+   (b) 對應嘅selected array（順序要match tag出現次序）
+5. 內部代號({KEY})只會出現喺呢個中介tag系統，唔會直接寫死做"image1"呢類字眼
+   （resolve_assets()負責將{KEY}轉做實際image順序）
 
 JOB拆分邏輯範例
 --------------
