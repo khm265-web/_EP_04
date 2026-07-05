@@ -44,9 +44,9 @@
   "PROP_F": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783188794/bxufcw7r2jcuqtd9nott.png",
   "PROP_F_note": "公園垃圾桶中的陀螺盤 道具參考圖",
 
-  "BEAST_A_GHOST": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783235718/hf_20260705_071140_b32a5765-e867-406d-b3c2-7746c4a28fe8_mtt3ml.png",
+  "BEAST_A_GHOST": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783260127/hf_20260705_135931_1a4754ed-9a73-4f7d-847b-0c7a2dd147e9_ed8165.png",
   "BEAST_A_GHOST_note": "主角用陀螺 戰鬥時的聖獸虛影",
-  "BEAST_B_GHOST": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783235718/hf_20260705_071117_b761bd10-bab8-4feb-b26f-d8f27178bb97_rsfgis.png",
+  "BEAST_B_GHOST": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783261107/hf_20260705_141604_49422b38-e01c-40e5-b40a-213723a282e3_f8sjiz.png",
   "BEAST_B_GHOST_note": "主角鏡像用陀螺 戰鬥時的聖獸虛影",
   "BEAST_C_GHOST": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783235717/hf_20260705_071421_76862331-2c6c-4dd2-b82c-51a83fe5190c_m3w4nt.png",
   "BEAST_C_GHOST_note": "第一層對手用陀螺 戰鬥時的聖獸虛影",
@@ -85,6 +85,10 @@
   "SB_06_note": "JOB 3C的STORYBOARD, SC01 陀螺盤內戰鬥開場交鋒",
   "SB_07": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783252843/b278d97a-e7a2-4a1b-824d-a41efdff20b1.png",
   "SB_07_note": "JOB 3D的STORYBOARD, SC01 陀螺盤內戰鬥終結",
+  "SB_08": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783284657/7ee49606-d0b5-458d-9a6f-55fca47108ce.png",
+  "SB_08_note": "JOB 4的STORYBOARD, SC01 轉場",
+  "SB_09": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783284661/ddb11f03-d482-41a6-83df-e9c72809432e.png",
+  "SB_09_note": "JOB 4A的STORYBOARD, SC01 轉場",  
 
 
   "STAGING": "https://res.cloudinary.com/bn3j6qty/image/upload/v1783188806/lmpphj3cc1gl0ipljau5.jpg",
