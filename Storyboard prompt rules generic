@@ -1,0 +1,169 @@
+# Storyboard Prompt 工作規則（通用版）
+
+用途：任何場次/劇本都適用嘅 storyboard prompt 工作規則。呢份係抽走特定劇本內容（角色、道具、招式）之後嘅通用框架，新場次直接套用呢個結構，唔需要重寫規則。
+
+---
+
+## 一、檔案命名與交付格式
+
+- 命名：`JOB[生成批次]_SC[場數]_SHOT_[編號].txt`，例：`JOB01_SC02_SHOT_05.txt`
+- 特殊格式編號：
+  - `[N]A` / `[N]B` = 插入編號 N 之後嘅補充 shot
+  - 自訂子集前綴（如 `B1`–`B9`）= 獨立命名嘅場景內子段落，用嚟標記非主線但需要獨立追蹤嘅一組 shot
+- 每個 shot 一個獨立 `.txt` 檔，內容淨係 prompt 正文
+- **`selected` 陣列唔寫入 txt 檔**，只喺回覆中列出，由使用者手動配置生成順序
+- 用 `create_file` 建立、複製到 `/mnt/user-data/outputs/`、用 `present_files` 交付
+
+---
+
+## 二、Prompt 內部結構（固定順序）
+
+```
+[STYLE BLOCK 第一句 —— 風格 + 比例 + 光效]
+
+[角色 identity-lock 句（如有角色出現）]
+
+[主體動作描述 —— 邊個做咩，用 {KEY} tag 標記資產]
+
+[Setting 段 —— 場景、背景人群/元素]
+
+[機位描述 —— 景別、角度、焦距、動態]
+
+[收尾負向句 —— "Add nothing, invent nothing..."]
+```
+
+- STYLE BLOCK 每個 project 開頭定一次固定句（風格 + 比例 + 基調光效），全部 shot 共用，改動要全局同步
+- 收尾固定句範本：
+  ```
+  Add nothing, invent nothing beyond what is described; no text, no logos, no watermark, no panel borders.
+  ```
+
+---
+
+## 三、Tag / selected 規則
+
+- `{KEY}` 對應 `assets.json` 嘅 key
+- **selected 陣列順序 = tag 第一次出現順序**，同一 KEY 出現幾次都只計一次
+- **凡畫面會見到嘅資產都必須 tag**，唔可以得個文字描述而唔畀參考圖
+- 角色 identity-lock 句要放**主體動作描述之前**，格式：
+  ```
+  {CHAR_X}: preserve exact face, hairstyle, and outfit from reference, unaltered by pose or angle.
+  ```
+- 手部/局部特寫可只鎖對應部位，唔需要整句臉部鎖定：
+  ```
+  {CHAR_X}: preserve the exact skin tone, hands and sleeve / outfit from reference. These are {CHAR_X}'s two hands.
+  ```
+
+### 「構圖參考 / 動作參考」類 tag（ACT_ 系列）用法：
+- 呢類 asset**只提供構圖/角度/距離/手勢**其中一種特定資訊，唔提供顏色、背景、風格、物件本身
+- 必須明文寫清楚邊部分取、邊部分唔取：
+  ```
+  Take ONLY the [構圖/角度/握姿] from {ACT_0X} — ignore its [顏色/背景/光/手勢/物件]; those are placeholders only.
+  ```
+- 每個 ACT_ key 只負責單一職能，唔可以一個 key 混多種用途
+- 如果構圖圖入面有顏色人形做示意，要明文對應邊個顏色 = 邊個角色：
+  ```
+  The RED placeholder figure's position and pose correspond to {CHAR_X}. The GREEN placeholder figure corresponds to {CHAR_Y}.
+  ```
+
+---
+
+## 四、比例/構圖規範（通用做法）
+
+呢個唔係固定數值，係一套「點樣定義同重申比例」嘅方法：
+
+- 凡場景入面有**大小懸殊嘅兩個主體**（例：容器 vs 內容物、角色 vs 環境物件），第一次定義比例後，**每個相關 shot 都要重申**（唔可以假設模型記得上一個 shot）
+- 標準寫法模板：
+  ```
+  [大物件] is much larger than [小物件] — the [小物件] occupies only a small fraction of [大物件]'s width/area.
+  ```
+- 如果畫面只露出部分（唔見全體），要講明點解細節唔會令比例失衡：
+  ```
+  only a small sliver of [邊緣部分] is visible — so [小物件] clearly reads as much smaller than [大物件].
+  ```
+
+### 正俯視 / 極端角度人物比例
+- 垂直俯視角度下，所有人**同一地面、同一距離 = 同一比例**，唔應該有前景放大效果
+- 必須明文禁止：
+  ```
+  NOT larger than the surrounding crowd, no foreground magnification, no oversized or stretched limbs, correct human proportions seen from straight above.
+  ```
+- 局部入鏡（手/前臂等）要限定範圍，避免拉長變形：
+  ```
+  only [指定部位] reach in — seen from [角度], foreshortened, NOT full bodies, NOT long stretched limbs.
+  ```
+
+---
+
+## 五、特殊視覺元素呈現規則（範本框架）
+
+如果劇本有「非常駐特殊視覺效果」（虛影、光效、變身、特效等），用呢個框架定義：
+
+### 1. 基本設定
+- 每個特殊元素定義：外形、狀態（開/合眼、覺醒/未覺醒等）、體積相對比例、透明度/材質
+- 明文寫死「唔可以畫」嘅狀態（例：未覺醒者全程唔可以開眼）
+
+### 2. 出現時機
+- 定義呢個元素**幾時先出現**（例：只喺特定動作觸發瞬間），唔係全程都喺度
+- 如果有「配對關係」（一方出現另一方必須同時存在），要寫明鐵律
+- 定義「冇觸發意涵」嗰啲 shot（純物理動作）係冇特殊效果
+
+### 3. 檢查鐵律
+- 每個特殊元素都應該有對應嘅必要 tag 組合，寫 prompt 後**逐個 tag 用清單核對**，缺一即錯
+
+### 4. 特效字典（範本）
+| 招式/狀態 | 施招者 | 定格姿勢 | 特效顏色/樣式 |
+|---|---|---|---|
+| （逐個狀態填） | | | |
+
+- 如果特效顏色/樣式改版，**要註明舊版本已棄用**，並提醒覆蓋去所有舊 shot：
+  ```
+  特效顏色已由 [舊] 改為 [新]（NOT [舊]），每次提到都要明文排除舊版本。
+  ```
+
+### 5. 多主體互動規則
+- 兩個以上特殊元素交鋒時，必須寫**清晰嘅纏鬥/互動動作**，唔可以各自對空氣做動作
+- 一方動作時，效果/軌跡要延伸指向對方，建立空間連結
+
+### 6. 構圖多元化
+- 記錄已用過嘅構圖類型（對角線、前後縱深、放射對撞、上下垛疊等），每次新 shot 檢查唔重複
+
+### 7. 空間感保留
+- 特效 shot 唔可以「爆閃/效果佔滿全幅」，必須保留場景主體嘅空間錨點入鏡：
+  ```
+  the [場景主體] is clearly visible in frame, anchoring the scene as happening inside [場景名]
+  ```
+- 貼鏡頭嘅撲擊/近身姿勢容易解剖扭曲，改用「中距離、低角度三分之四視角」較安全
+
+---
+
+## 六、背景人群/環境規則
+
+- 除非刻意做「唯獨主角孤立」嗰類超現實對比，**背景應該有對應嘅環境活動**，唔可以齋淨得虛化空場
+- 標準寫法模板：
+  ```
+  the [場景] is busy and alive with [場景設定嘅活動] — other [人群/元素] scattered in the middle distance, softly out of focus but clearly present, not an empty [場景].
+  ```
+- 呢句要放喺 Setting 段，每個相關 shot 獨立重申
+
+---
+
+## 七、關鍵原則（貫穿全部工作）
+
+1. **每次生成獨立**：圖像模型每次生成完全冇記憶，prompt 內唔可以出現「the SAME as before」「continuing from previous shot」等假設模型記得上文嘅寫法。連貫性要靠每格自己重複寫出同一套視覺規則達成，唔係靠模型記憶
+2. **導演意圖唔照抄**：使用者講嘅嘢係導演 intent，寫 prompt 時要轉譯成生成適用嘅英文描述，唔係逐句直譯
+3. **不明白就問一句**：構圖/動作/顏色等關鍵決定有歧義時，問清楚先寫，唔好自己估
+4. **改動後必須複核**：加咗新規則要覆蓋去所有相關舊 shot，唔淨係新 shot；改完要逐個 tag 核對齊全
+5. **正俯視/極端角度容易失真**：凡涉及俯視、荷蘭角、極近撲擊呢類角度，都要加返「correct proportions / no distortion」類負向句預防生成失真
+
+---
+
+## 八、套用新場次時要填嘅內容
+
+新場次開始前，準備以下內容取代呢份文件嘅範本框架：
+
+- STYLE BLOCK 固定句（呢個 project 嘅風格定調）
+- Asset Keys 清單（角色/道具/場景/ACT_ 參考）
+- 比例規範（如有大小懸殊主體，定義邊個大邊個細）
+- 特殊視覺元素設定（如有，套用第五節框架填內容）
+- 背景環境設定（呢個場景嘅日常活動係咩）
