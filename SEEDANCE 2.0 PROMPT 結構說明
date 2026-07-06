@@ -27,7 +27,7 @@ Prompt Template
 2D hand-drawn anime in the style of Satoshi Kon's Paprika (Madhouse; character design Masashi Ando, art direction Nobutaka Ike). 9:16 vertical, cinematic restrained composition.
 [其餘STYLE設定：光影/色調/preventative clauses]
 
-{SCENE_XX}
+SCENE_XX
 [場景描述 — 地點、固定視覺元素、氛圍，跨SHOT共用]
 
 SHOT 1 — [Xs]
