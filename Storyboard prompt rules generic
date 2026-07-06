@@ -38,6 +38,18 @@
   Add nothing, invent nothing beyond what is described; no text, no logos, no watermark, no panel borders.
   ```
 
+### 段落分類鐵律（防止內容混雜）
+
+每一句只可以屬於「identity-lock / 動作 / setting / 鏡頭 / 負向」五類其中一類，**唔可以一句包含多類內容**。寫完 prompt 後逐句核對：
+
+- 呢句係咪淨係講外觀保留？→ identity-lock
+- 呢句係咪講緊做咩/表情/狀態？→ 動作
+- 呢句係咪講緊場景/背景？→ setting
+- 呢句係咪講緊景別/角度/焦距/景深？→ 鏡頭
+- 如果一句同時撞到兩類或以上 → 拆開做多句
+
+每個 `{CHAR_X}` 相關句子不超過一個主要子句；外觀 + 表情 + 動作 + 鏡頭關係如果混埋一齊，必須拆做多句分屬唔同段落。
+
 ---
 
 ## 三、Tag / selected 規則
@@ -45,16 +57,33 @@
 - `{KEY}` 對應 `assets.json` 嘅 key
 - **selected 陣列順序 = tag 第一次出現順序**，同一 KEY 出現幾次都只計一次
 - **凡畫面會見到嘅資產都必須 tag**，唔可以得個文字描述而唔畀參考圖
-- 角色 identity-lock 句要放**主體動作描述之前**，格式：
-  ```
-  {CHAR_X}: preserve exact face, hairstyle, and outfit from reference, unaltered by pose or angle.
-  ```
+
+### Identity-lock 句 —— 內容限制（重要）
+
+```
+{CHAR_X}: preserve exact face, hairstyle, and outfit from reference, unaltered by pose or angle.
+```
+
+**呢句只可以包含：臉/髮型/服裝保留 + "unaltered by pose or angle" 呢類聲明。禁止喺呢句出現：**
+- 表情描述（expression, smile, gaze, sinister, amusement 等）
+- 動作/姿勢描述（standing, facing, watching, seen from behind 等）
+- 鏡頭/景深資訊（foreground, close-up, sharp focus, blurred, out of focus 等）
+
+以上內容一律歸落「主體動作描述」段，用返 `{CHAR_X}` 做主詞另起句。
+
 - 手部/局部特寫可只鎖對應部位，唔需要整句臉部鎖定：
   ```
   {CHAR_X}: preserve the exact skin tone, hands and sleeve / outfit from reference. These are {CHAR_X}'s two hands.
   ```
 
+### 主體動作描述段 —— 多角色分句規則
+
+- 每個角色嘅動作/表情/狀態獨立成句，以 `{CHAR_X}` 開頭
+- **唔可以將兩個角色嘅動作寫喺同一句內**（例如唔可以寫 "{CHAR_A} does X while {CHAR_C} does Y" 混埋一句，要拆做兩句）
+- 呢段**唔可以出現鏡頭字眼**：close-up、over-the-shoulder、foreground、depth of field、in focus/out of focus 呢類字眼一律留返去「機位描述」段講，避免同 Camera 段重複描述同一構圖
+
 ### 「構圖參考 / 動作參考」類 tag（ACT_ 系列）用法：
+
 - 呢類 asset**只提供構圖/角度/距離/手勢**其中一種特定資訊，唔提供顏色、背景、風格、物件本身
 - 必須明文寫清楚邊部分取、邊部分唔取：
   ```
@@ -155,6 +184,7 @@
 3. **不明白就問一句**：構圖/動作/顏色等關鍵決定有歧義時，問清楚先寫，唔好自己估
 4. **改動後必須複核**：加咗新規則要覆蓋去所有相關舊 shot，唔淨係新 shot；改完要逐個 tag 核對齊全
 5. **正俯視/極端角度容易失真**：凡涉及俯視、荷蘭角、極近撲擊呢類角度，都要加返「correct proportions / no distortion」類負向句預防生成失真
+6. **一句一類**：寫完每句都要對照第二節嘅段落分類鐵律，identity-lock 唔可以夾表情/動作/鏡頭
 
 ---
 
