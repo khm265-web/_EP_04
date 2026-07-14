@@ -80,6 +80,28 @@ SHOT1  4s  -> JOB1
 SHOT2  6s  -> JOB1（累計10s）
 SHOT3  7s  -> 超出15s，移至JOB2
 
+JOB JSON 結構說明
+-----------------
+每個JOB對應一個 .json（settings）+ 一個 .txt（prompt文字），
+JSON欄位如下：
+
+{
+    "name": "JOB編號_SC場次_SHOT範圍",      // 檔名/job識別，通常對應SCENE+SHOT區間
+    "active": false,                        // true=呢個JOB會被執行；false=跳過
+    "selected": ["CHAR_A", "PROP_A1", ...], // 呢個JOB用到嘅asset key，順序=tag被resolve做image1/2...嘅順序（見上方{KEY} Tag規則第3點）
+    "mode": "REFERENCE",                    // REFERENCE=用reference image生成；其他視乎API支援
+    "ratio": "9:16",                        // 畫面比例，固定跟STYLE BLOCK
+    "duration": 12,                         // 秒數，= 呢個JOB入面所有SHOT時長總和，上限15s
+    "resolution": "480p",                   // draft用低解析度，定稿先加高.
+    "seed": 2026,                           // 固定seed；retry邏輯會用random覆蓋（見RETRYABLE_ERROR_CODES）
+    "audio": "",                            // 對應音檔路徑/URL，空字串=呢條job無獨立audio
+    "content_filter": false                 // 內容審查開關
+}
+
+- selected array數量/順序要同prompt .txt入面{KEY}出現次序match，錯位會導致tag對錯圖
+- duration一定要等於JOB拆分邏輯計出嚟嘅累計秒數，唔可以隨便填
+- active控制單一JOB是否被pipeline執行，方便批量開關而唔洗刪JSON
+
 ⚠️ MODEL LIMITATION
 -------------------
 Seedance 2.0 / Seedance 2.0 Mini 不支援 negative prompt。
