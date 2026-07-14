@@ -1,0 +1,20 @@
+#1 角色參考圖（白底）
+Character model reference sheet in the style of Satoshi Kon's Paprika. Same character: full-body front, three-quarter, side and back turnaround plus a head-and-shoulders expression row. Pure white background #FFFFFF, even neutral lighting, flat and reference-accurate, not cinematic.
+#2 場景參考圖（人物中性）
+Establishing scene plate of a single location in the style of Satoshi Kon's Paprika. Cinematic wide vertical 1:1.
+#3 道具參考圖（白底）
+Product reference sheet in the style of Satoshi Kon's Paprika. Same object from front, three-quarter, side and top plus one detail callout. Pure white background #FFFFFF, even neutral lighting, flat and reference-accurate, not cinematic.
+#4 Storyboard（彩色keyframe）
+Cinematic anime frame in the style of Satoshi Kon's Paprika. 9:16 vertical.
+#5 Seedance 2.0 (video gen)
+2D hand-drawn anime in the style of Satoshi Kon's Paprika (Madhouse; character design Masashi Ando, art direction Nobutaka Ike). 9:16 vertical, cinematic restrained composition.
+Mono toggle：
+Monochrome director's storyboard in the style of Satoshi Kon's Paprika. Ink line and grey wash, no colour. 9:16 vertical.
+
+逐場 GRADE line（只供 #2 / #4，assembly 時append，無 tag）
+SC01：warm daylight through the glass curtain wall, rich warm golds and greens, marble-floor reflections, the warmest most saturated grade of the film
+SC02：overcast grey-white snow light, concrete grey and black metal, one step cooler and less saturated
+SC03 Limbo：pale misty light, dust-grey concrete, a tilted sea, the palest grade, luminous not muddy, surreal physics rendered photoreal
+SC04：cold fluorescent green-cyan office light, neon city beyond the glass, grounded and neutral
+SC04A：cold white carriage light, steel / beige / black, fully black windows, grounded and neutral
+SC05：foggy night, warm sodium lamplight bleeding into mist, wet reflective paving, the only warm note in the reality layer

@@ -1,0 +1,90 @@
+SEEDANCE 2.0 PROMPT 結構說明
+================================
+
+專案背景
+--------
+AI生成影像技術方案，建立/優化Python pipeline，
+透過指定AI模型API執行圖片/影片生成工作。
+API來源：FAL.AI、BytePlus
+
+JOB 與 SHOT 關係
+----------------
+- 1 JOB = 1條 Seedance 生成影片
+- 單次生成上限 15s
+- 1個JOB可含1~N個SHOT，SHOT時長總和 ≤15s
+- 排JOB時計算：最尾SHOT剩餘時長唔夠就搬去下一個JOB，唔好硬塞
+- 多於1個SHOT時，SHOT之間用 "CUT TO" 分隔
+- SHOT有對白就直接寫入該SHOT段落
+
+STYLE BLOCK（固定文字）
+----------------------
+2D hand-drawn anime in the style of Satoshi Kon's Paprika (Madhouse; character design Masashi Ando, art direction Nobutaka Ike). 9:16 vertical, cinematic restrained composition.
+（其後可再加：光影/色調 + 全局性 preventative clause，見下方「PREVENTATIVE CLAUSE 分層規則」）
+
+IDENTITY-LOCK 規則
+------------------
+- 每個出現喺SCENE入面嘅{CHAR_X}/{PROP_X}，
+  identity-lock句只喺SCENE開場寫一次（SCENE描述之前），
+  唔喺個別SHOT內重複
+- Identity-lock句淨係可以含「外觀」語言
+  （臉、髮型、衫著、形狀、顏色、比例）
+- 唔可以含pose、動作、狀態、位置描述
+  （例如 "in ready-to-launch position"、"unaltered by pose or angle" 之後接位置字眼）
+  呢啲屬於SHOT動作描述，寫喺SHOT段落入面
+- 格式：
+  {KEY}: preserve exact [face/hairstyle/outfit 或 shape/color/proportions] from reference.
+
+PREVENTATIVE CLAUSE 分層規則
+----------------------------
+Seedance 唔支援獨立Negative區塊（見下方MODEL LIMITATION），preventative clause分兩層寫入正面敘述：
+- 全局性（整個SCENE都要守嘅限制，例如唔要warm light、唔要色彩飽和度突變）
+  → 寫喺 STYLE BLOCK
+- 單一SHOT性（淨係嗰個SHOT要守嘅限制，例如唔要zoom）
+  → 寫入該SHOT嘅鏡頭描述句入面
+  例：「TRUE SLOW PUSH-IN: camera physically drifts forward... NOT a zoom, focal length stays fixed throughout.」
+
+Prompt Template
+---------------
+[STYLE BLOCK]
+[IDENTITY LOCK BLOCK — 呢個SCENE用到嘅所有{CHAR_X}/{PROP_X}，各一句]
+
+SCENE_XX
+[場景描述 — 地點、固定視覺元素、氛圍，跨SHOT共用]
+
+SHOT 1 — [Xs]
+[鏡頭/構圖/角色動作/對白(如有)/單一SHOT性preventative clause]
+
+CUT TO
+
+SHOT 2 — [Xs]
+[鏡頭/構圖/角色動作/對白(如有)/單一SHOT性preventative clause]
+
+[...累計最多15s...]
+
+Audio: {AUDIO}, NO BGM
+
+{KEY} Tag 規則（Asset對應）
+--------------------------
+1. Prompt文字入面用 {KEY} tag（如 {CHAR_A}, {PROP_2}）標記邊個角色/物件出現喺邊
+2. {KEY} 要對應 assets.json 入面既key
+3. JSON既 selected array 順序 = tag被resolve做 image1/image2... 既順序
+4. 每次要同時輸出：
+   (a) prompt文字（含{KEY} tag）
+   (b) 對應嘅selected array（順序要match tag出現次序）
+5. 內部代號({KEY})只會出現喺呢個中介tag系統，唔會直接寫死做"image1"呢類字眼
+   （resolve_assets()負責將{KEY}轉做實際image順序）
+
+JOB拆分邏輯範例
+--------------
+SHOT1  4s  -> JOB1
+SHOT2  6s  -> JOB1（累計10s）
+SHOT3  7s  -> 超出15s，移至JOB2
+
+⚠️ MODEL LIMITATION
+-------------------
+Seedance 2.0 / Seedance 2.0 Mini 不支援 negative prompt。
+"Negative:" 區塊寫落prompt文字都唔會被模型當negative指令處理。
+如需避免特定元素，改用：
+- 正面描述鎖定想要嘅結果（例如唔想zoom，就明確寫死鏡頭運動方式）
+- Preventative clause寫入正面敘述句入面，而唔係獨立Negative區塊
+  （分層方式見上方「PREVENTATIVE CLAUSE 分層規則」）

@@ -1,0 +1,14 @@
+# 預設忽略晒 root 全部嘢
+/*
+
+# 但放行以下指定檔案
+!assets.json
+!EP04劇本
+!SEEDANCE 2.0 PROMPT 結構說明
+!Storyboard draft rules no tag
+!Storyboard multi panel prompt rules
+!Storyboard multi panel prompt rules tag
+!Storyboard prompt rules generic
+!STYLE BLOCK
+!watch_assets.py
+!.gitignore

@@ -1,0 +1,90 @@
+# Storyboard 構圖草稿 Prompt 規則（無 Tag 版）
+
+用途：AI 睇劇本直接寫分鏡構圖 prompt，用於 flux/schnell 純文字生成構圖草稿。呢階段唔要求角色/道具/場景正確，只要求構圖、比例、鏡頭角度準確。
+
+---
+
+## 一、核心原則
+
+- **唔可以出現任何 `{KEY}` tag**，全部角色/道具/場景改用純文字描述（例：「a young woman」而唔係 `{CHAR_A}`）
+- **唔需要外觀一致性**，唔使描述髮型/衣著細節，只需要描述「有幾多人、喺邊、做緊咩、鏡頭點影」
+- 呢階段目的只有一個：**鎖定構圖同鏡頭語言**，其他元素之後靠 asset ref 覆蓋
+
+---
+
+## 二、檔案命名與交付格式
+
+- 命名：`JOB[批次]_SC[場數]_SHOT_[編號].txt`，例：`JOB01_SC03_SHOT_01.txt`
+- 每個 shot 一個獨立 `.txt` 檔，內容淨係 prompt 正文
+- 用 `create_file` 建立、複製到 `/mnt/user-data/outputs/`、用 `present_files` 交付
+
+---
+
+## 三、風格強制句（每個 shot 開頭固定）
+
+```
+Rough black-and-white storyboard sketch, simple line art, loose gesture lines, no fine detail, no color, no shading rendering, flat sketch style.
+```
+
+---
+
+## 四、Prompt 結構（固定順序）
+
+```
+[風格強制句]
+
+[景別 + 鏡頭角度 —— wide/medium/close-up, eye-level/low angle/high angle/dutch tilt]
+
+[主體位置與比例 —— 邊個喺邊，佔畫面幾多，前中後景分層]
+
+[動作簡述 —— 淨係講緊做緊咩動作/姿勢，唔使表情細節]
+
+[負向句]
+```
+
+負向句固定：
+```
+No color, no character detail, no background detail, no text, no logos. Composition and camera angle only.
+```
+
+---
+
+## 五、分句鐵律
+
+- 每句只講一件事：**景別/角度、位置比例、動作** 三類分開寫，唔可以夾埋一句
+- 多主體時，每個主體嘅位置獨立成句，唔可以將兩個主體嘅位置寫埋同一句
+
+---
+
+## 六、比例/構圖描述模板
+
+- 前後景分層必寫：
+  ```
+  [主體] in foreground occupying [大概比例], [次要元素] in background, smaller and softer.
+  ```
+- 低角度：
+  ```
+  camera positioned low, looking up at subject, subject's lower body appears larger, head near top of frame.
+  ```
+- 高角度/俯視：
+  ```
+  camera positioned high, looking down at subject, correct human proportions, no foreground distortion.
+  ```
+- 廣角/建立鏡頭：
+  ```
+  wide establishing shot, subject small within frame, environment layout clearly visible.
+  ```
+
+---
+
+## 七、唔明就問
+
+- 劇本入面涉及具體幾多人、邊個做主體動作、鏡頭係咪需要跟拍等有歧義時，先問清楚，唔好自己估
+
+---
+
+## 八、套用時要提供
+
+- 劇本/場次文字內容
+- 呢場總共想分幾多格（4–6格）
+- 有冇特定鏡頭要求（例如某格一定要低角度/特寫）

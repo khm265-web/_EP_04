@@ -1,0 +1,118 @@
+# STORYBOARD MULTI-PANEL PROMPT 生成規則
+（單一 Prompt 生成多格分鏡草稿 — GPT Image 2 適用）
+
+## 用途
+呢份文件係畀 Claude 用嚟，將一場戲嘅多個分鏡（shot list / 動作描述）
+轉換成**一個 GPT Image 2 prompt**，輸出**一張 16:9 圖，內含多格分鏡草稿**。
+
+用途定位：**快速構圖/走位/鏡頭節奏草稿**，唔係最終 reference，唔追求角色一致性。
+
+---
+
+## 核心原則
+
+1. **NO TAG / NO IDENTITY LOCK**
+   - 呢類 storyboard 完全唔使 `{CHAR_X}` reference tag，唔使 identity lock 句子
+   - 角色一律用抽象描述（如 silhouette figure / rough humanoid shape），
+     **完全唔寫任何外觀細節**（唔講髮型、五官、體型、服裝款式等）
+   - 多角色區分方式：**純粹用顏色標示**（例如 "figure in red", "figure in blue
+     outline", "character marked with green tone"），唔用文字描述樣貌去分辨
+   - 目的：消除跨格 identity 一致性負擔 = 大幅減少 attention decay 崩壞風險；
+     同時顏色比外觀描述更穩定，唔會被模型誤解或跨格漂移
+
+2. **風格統一 = 簡筆草稿**
+   - Style block 只寫一次，放最前：粗線條、黑白/低彩、無精細五官、無寫實渲染
+   - GPT Image 2 對 anime 人物有好強嘅內建精緻風格傾向，普通形容詞（如單講 "rough
+     sketch" / "loose line art"）唔夠力壓過去，容易變返精緻線稿
+   - 要用更直接/物理性嘅措辭去蓋過預設風格，例如：
+     "unfinished pencil sketch", "construction lines visible",
+     "no clean linework", "sketchy scribble strokes",
+     "student rough draft, NOT finished illustration"
+   - 避免單純講形容詞（"loose", "rough"），改用具體技法描述（鉛筆草稿感、
+     構造線可見、未修線）
+
+3. **Panel 之間必須有明顯可辨識差異**
+   - 唔好將多個 panel 寫成相似構圖 + 相似描述（如連續多格都係 "close-up angry
+     face"），呢種輸入差異度唔夠會導致模型將佢哋當成同一鏡頭嘅變體，輸出過度相似
+   - 每個 panel 描述除咗表情/動作，構圖角度、景框（wide/medium/close）、
+     鏡頭視角都要刻意拉開差異，避免連續兩格用相同 shot size + 相同描述方向
+
+4. **Grid 數量上限**
+   - 上限 12 格（3x4 / 4x3 / 2x6）
+   - 4-6 格：構圖細節可以保留多少少（如簡單 prop 位置）
+   - 7-12 格：每格像素分薄，只保留最核心資訊（角色大致位置 + 動作方向 + 鏡頭尺寸），
+     唔好要求任何細節判斷；純粹用嚟睇成場戲節奏/順序
+   - 多於 12 格建議拆成兩個 prompt 分開生成
+
+5. **Panel 排版指令必須明確**
+   - 講明 row x col 結構
+   - 講明 panel 編號位置（如 top-left corner numbered 1-N）
+   - 講明閱讀順序（left-to-right, top-to-bottom）
+   - 要求 gutter（格與格之間分隔線），防止畫面內容互相污染
+
+6. **每格內容獨立描述**
+   - 每個 panel 一段獨立句子，只寫：構圖（wide/medium/close）、鏡頭運動、
+     角色動作/走位、關鍵 prop 位置
+   - 唔好將多個 panel 嘅動作寫喺同一句（避免模型混淆邊個動作屬邊格）
+
+7. **Negative / Preventative Block（放最後）**
+   - no fine facial detail
+   - no color rendering（如要黑白）/ no photorealism
+   - no bleeding between panels
+   - no panel merging
+   - consistent sketch style across all panels
+
+---
+
+## Prompt 模板
+
+```
+[STYLE]: rough sketch storyboard, unfinished pencil linework, construction
+lines visible, no clean linework, sketchy scribble strokes, mostly
+black-and-white with each character marked by a single flat accent color
+(no other color rendering, no shading, no rendering of clothing/hair detail)
+
+[GRID]: {N} panels, {ROWS} rows x {COLS} cols, thin black gutter lines
+between panels, panel number labeled top-left corner of each panel (1-{N}),
+reading order left-to-right top-to-bottom
+
+[CHARACTER COLOR KEY]: {CHAR_A} = red outline, {CHAR_B} = blue outline,
+{CHAR_C} = green outline (按角色數量調整，唔重複用色)
+
+[PANEL 1]: {shot size} shot, {character color tag} {action/blocking description},
+{camera movement if any} — 構圖角度/景框要與相鄰 panel 明顯不同
+[PANEL 2]: {shot size} shot, {character color tag} {action/blocking description},
+{camera movement if any}
+...
+[PANEL N]: ...
+
+[NEGATIVE]: no fine facial detail, no appearance/costume detail, no full
+color rendering, no photorealism, no bleeding between panels, no panel
+merging, consistent loose sketch style across all panels
+```
+
+---
+
+## Claude 執行時嘅工作流程
+
+當用戶提供一場戲嘅 shot list / 動作描述時：
+
+1. 判斷呢場戲有幾多個 shot → 決定分幾個 prompt（每個 prompt 上限 12 panel）
+2. 將每個 shot 濃縮做一句 panel 描述（shot size + action + camera，唔加角色細節）
+3. 套用上面模板，輸出完整 prompt（純文字，唔使 `{KEY}` tag）
+4. 如果用戶要求，同時生成對應嘅 job `.json`（`quality: low`, 無 `selected` array，
+   因為冇 reference image 需要）
+
+---
+
+## 適用範圍 / 唔適用場景
+
+**適用：**
+- 睇成場戲鏡頭順序、走位、構圖節奏
+- 快速跟導演/團隊過版
+- Draft-cheap 階段，用嚟決定會唔會入下一步（逐格精做）
+
+**唔適用：**
+- 需要角色一致性判斷（用返逐格 + identity lock 做法）
+- 最終 reference image 或要俾模型學嘅 pose/depth map
+- 需要精細五官/服裝細節核對嘅場合

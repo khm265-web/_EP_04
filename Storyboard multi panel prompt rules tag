@@ -1,0 +1,120 @@
+# STORYBOARD MULTI-PANEL PROMPT 生成規則（TAG 版）
+（單一 Prompt 生成多格分鏡草稿 — 使用 {KEY} Asset Reference — GPT Image 2 適用）
+
+## 用途
+同 NO_TAG 版一樣輸出**一張 16:9 圖，內含多格分鏡**，但呢版**要用 assets.json 入面
+嘅角色/場景/道具 reference image**，追求跨格角色外觀一致，唔再用顏色抽象標示。
+
+用途定位：構圖草稿 + 角色一致性初步驗證（比 NO_TAG 精確，但仍非最終 reference）。
+
+---
+
+## 同 NO_TAG 版嘅核心差異
+
+| 項目 | NO_TAG 版 | TAG 版（本文件） |
+|---|---|---|
+| 角色標示 | 純色塊/outline | `{CHAR_X}` tag + reference image |
+| Identity Lock | 無 | 有（外觀限定語句，寫一次） |
+| selected array | 唔需要 | 需要，順序對應 image 1, 2, 3... |
+| 風格 | 草稿簡筆 | 可保留較多細節，但仍係draft線稿級 |
+| 一致性要求 | 唔追求 | 追求（但唔保證100%，靠精修階段修正）|
+
+---
+
+## 核心規則
+
+1. **Reference Image 對應**
+   - `selected` array 順序 = image 1, 2, 3...，prompt 內文字 tag 一律用
+     `{CHAR_A}` 呢類 key，唔用 "image 1" 呢種寫法（GPT Image 2 tag 格式：`image {n}`
+     由系統/JSON生成器處理，prompt正文直接寫 `{KEY}`）
+   - 每場戲用到嘅角色/道具，先喺 `selected` 排好順序，先寫 prompt
+
+2. **Identity Lock（一次性，放 Style Block 之後）**
+   - 每個涉及角色寫一句外觀限定句：樣貌、髮型、服裝、體型、比例
+   - **絕對唔寫 pose / 動作 / 位置** —— identity lock 只鎖外觀，唔鎖狀態
+   - 格式：`{CHAR_A}: [外觀描述]. {CHAR_B}: [外觀描述].`（逐個角色分句）
+
+3. **風格 Block**
+   - 因為要睇清楚外觀是否對應 reference，線稿可以比 NO_TAG 版精細少少，
+     但仍要標明係 storyboard/draft 用途，避免模型直接輸出完成度過高嘅精緻圖
+   - 建議措辭：`"storyboard draft, moderate line detail, flat shading, NOT
+     final illustration"`
+
+4. **Panel 差異化（同 NO_TAG 版一樣）**
+   - 每格構圖角度/景框（wide/medium/close）要明顯唔同，避免模型輸出重複構圖
+   - 每格獨立句子描述：邊個角色（用 `{KEY}`）+ 動作/走位 + 鏡頭
+
+5. **Grid 規則（統一尺寸 + 數字寫喺格外）**
+   - 上限 12 格；標準排版為 **2 rows x 6 cols**（16:9 整體畫布），少於 12 格時
+     按實際數量調整 row x col（例：8格可以做 2x4），但同一張圖入面所有格必須
+     大小一致
+   - **所有 panel 必須大小完全一致**（同一 row x col 網格，唔准某格特別大/闊），
+     要喺 prompt 明確寫出 "uniform equal-size grid cells" 呢類措辭，防止模型將
+     wide shot 自動放大成跨格大圖
+   - 背景/gutter 用**白色**（唔用黑色），panel 之間用幼白邊/幼灰線分隔
+   - **panel 編號要寫喺每格外面嘅左上角**（即係喺白色 gutter 區域上，唔係疊喺
+     畫面內容之上），格式似漫畫分鏡標籤，唔好遮擋任何畫面內容
+   - 講明 row x col、閱讀順序 left-to-right top-to-bottom
+
+6. **Preventative Block（正面描述，唔用 negative_prompt）— 硬性規定**
+
+   ⚠️ GPT Image 2 / Seedance 2.0 API **完全冇 negative_prompt 參數**，
+   所有 prompt 撰寫（包括 Claude 幫手寫）一律禁止出現：
+   "no X" / "avoid X" / "without X" / "not X" 呢類負面句式。
+   一律轉做正面肯定句寫入 Style/Grid block 或個別 panel/shot 描述。
+
+   - 例：唔用 "no bleeding between panels" → 改用
+     "each panel fully separated by a solid white gutter, contents strictly
+     contained within its own panel border"
+   - 例：唔用 "no design deviation from reference" → 改用
+     "each character's face, hairstyle, outfit and proportions rendered
+     exactly matching the provided reference image {KEY}"
+   - 例：唔用 "no panel merging / no uneven panel size" → 改用
+     "12 uniform equal-size rectangular panels arranged in a fixed grid,
+     all panels identical in width and height"
+
+---
+
+## Prompt 模板
+
+```
+[STYLE]: Cinematic anime frame in the style of Satoshi Kon's Paprika,
+storyboard draft, moderate line detail, flat shading, NOT final
+illustration, consistent panel layout throughout, each character's
+appearance rendered exactly matching its provided reference image
+
+[IDENTITY LOCK]: {CHAR_A}: [外觀描述，唔含動作]. {CHAR_B}: [外觀描述，唔含動作].
+
+[GRID]: 12 panels, 2 rows x 6 cols fixed grid, 16:9 overall canvas, all
+panels uniform equal size, white background and white gutter separating
+panels with a thin gray border line, panel number labeled outside each
+panel in the top-left corner of the white gutter area (not overlapping
+panel artwork), reading order left-to-right top-to-bottom
+
+[PANEL 1]: {shot size} shot, {CHAR_A} {action/blocking}, {camera movement
+if any}
+[PANEL 2]: {shot size} shot, {CHAR_B} {action/blocking}, {camera movement
+if any}
+...
+[PANEL N]: ...
+```
+
+---
+
+## JSON 對應注意
+
+- `selected` array 順序必須同 prompt 入面 `{KEY}` 出現順序邏輯一致（tag系統會自動轉做
+  `image {n}`，但排列順序要人手對好，避免對錯人）
+- 呢個 job 類型 `quality` 建議用 `low`（draft用途，成本考慮）
+
+---
+
+## 適用範圍
+
+**適用：**
+- 需要初步驗證多角色喺同一場戲入面嘅相對外觀/走位是否合理
+- 比 NO_TAG 版更接近最終分鏡，但仍非最終角色一致性 reference
+
+**唔適用：**
+- 最終角色一致性圖（用返逐格生成 + 完整 identity lock + 精修模型 NBP）
+- Panel 數量多於 12（建議拆 prompt）
