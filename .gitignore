@@ -3,6 +3,7 @@
 
 # 但放行以下指定檔案
 !assets.json
+!audio_descs.json
 !EP04劇本
 !SEEDANCE 2.0 PROMPT 結構說明
 !Storyboard draft rules no tag
