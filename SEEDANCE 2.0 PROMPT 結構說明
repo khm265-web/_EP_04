@@ -36,43 +36,86 @@ IDENTITY-LOCK 規則
 
 PREVENTATIVE CLAUSE 分層規則
 ----------------------------
-Seedance 唔支援獨立Negative區塊（見下方MODEL LIMITATION），preventative clause分兩層寫入正面敘述：
+Preventative clause分三層寫入：
 - 全局性（整個SCENE都要守嘅限制，例如唔要warm light、唔要色彩飽和度突變）
-  → 寫喺 STYLE BLOCK
+  → 寫喺 STYLE BLOCK（正面敘述）
 - 單一SHOT性（淨係嗰個SHOT要守嘅限制，例如唔要zoom）
-  → 寫入該SHOT嘅鏡頭描述句入面
+  → 寫入該SHOT嘅鏡頭描述句入面（正面敘述）
   例：「TRUE SLOW PUSH-IN: camera physically drifts forward... NOT a zoom, focal length stays fixed throughout.」
+- 畫面雜訊/meta元素性（blur、BGM、text overlay等，同主體/鏡頭控制無關）
+  → 寫入最尾 NEGATIVE PROMPT BLOCK（見下方詳細規則），呢層可以用negative排除寫法
 
 Prompt Template
 ---------------
-[STYLE BLOCK]
+⚠️ 排序原則：Seedance 2.0 開頭20-30字權重最高，模型用嚟lock主體，
+   所以主體（IDENTITY LOCK）要行先，STYLE BLOCK呢類全局形容詞退後，
+   避免長篇style文字稀釋咗開頭對主體嘅鎖定。
+
 [IDENTITY LOCK BLOCK — 呢個SCENE用到嘅所有{CHAR_X}/{PROP_X}，各一句]
+[STYLE BLOCK]
+[VIDEO REF BLOCK — 如selected入面有video reference key，講明呢個reference用嚟lock乜（例如camera movement / motion style），唔淨係列key（可省略）]
+[AUDIO REF BLOCK — 如selected入面有audio reference key（唔係output嘅Audio:{AUDIO}行），講明用嚟lock節奏/語氣/sync（可省略）]
 
 SCENE_XX
 [場景描述 — 地點、固定視覺元素、氛圍，跨SHOT共用]
 
 SHOT 1 — [Xs]
-[鏡頭/構圖/角色動作/對白(如有)/單一SHOT性preventative clause]
+[角色動作(具體動詞、現在式)/鏡頭(單一主要camera movement)/構圖/對白(如有)/單一SHOT性preventative clause]
 
 CUT TO
 
 SHOT 2 — [Xs]
-[鏡頭/構圖/角色動作/對白(如有)/單一SHOT性preventative clause]
+[角色動作(具體動詞、現在式)/鏡頭(單一主要camera movement)/構圖/對白(如有)/單一SHOT性preventative clause]
 
 [...累計最多15s...]
 
 Audio: {AUDIO}, NO BGM
+Negative: [5-8個詞，僅限artifact/meta元素，規則見下方「NEGATIVE PROMPT BLOCK 規則」]
 
-{KEY} Tag 規則（Asset對應）
+⚠️ AUDIO TAG 規則
+-----------------
+{AUDIO} 係literal template token,唔係要expand嘅變數。
+Prompt文字output時必須keep住 "Audio: {AUDIO}, NO BGM" 呢個字面字串,
+唔可以將佢替換做audio_descs.json入面嘅實際描述內容。
+Resolve邏輯交由python script喺runtime處理,唔喺prompt生成階段做。
+
+⚠️ NEGATIVE PROMPT BLOCK 規則（新增）
+-------------------------------------
+位置：成個prompt最尾，Audio行之後獨立一行
+格式：`Negative: 元素1, 元素2, 元素3...`（短list，逗號分隔，唔好成句寫）
+
+✅ 可以放入Negative Block（僅限「畫面雜訊/非預期元素」類）：
+- 技術性artifact：blur, jitter, flicker, frame morphing, warped face, deformed hands, extra fingers
+- 非預期meta元素：background music, BGM, text overlay, subtitles, watermark, logo
+- Style leak（防止偏離anime風格）：photorealistic, live-action, 3D render
+
+❌ 唔可以放入Negative Block（呢啲一定要留喺原本正面敘述位置）：
+- 角色外觀/身份相關限制 → 一定寫喺IDENTITY LOCK BLOCK，用正面「preserve exact...」句式
+- 單一SHOT嘅鏡頭運動限制（例如「唔係zoom」）→ 留喺該SHOT描述句入面，用正面鎖定寫法
+  （例：「TRUE SLOW PUSH-IN...NOT a zoom, focal length stays fixed」）
+- 全局性畫面/構圖限制（例如唔要暖色調）→ 留喺STYLE BLOCK
+
+原則：Negative Block只做「掃尾清雜訊」，唔做「主體/鏡頭控制」——
+呢兩樣嘢正面描述準確度遠高於negative排除，混用會削弱identity-lock同鏡頭控制嘅穩定性。
+數量：建議5-8個詞以內，太長會稀釋效果（negation overload）。
+
+
 --------------------------
 1. Prompt文字入面用 {KEY} tag（如 {CHAR_A}, {PROP_2}）標記邊個角色/物件出現喺邊
 2. {KEY} 要對應 assets.json 入面既key
-3. JSON既 selected array 順序 = tag被resolve做 image1/image2... 既順序
+3. JSON只有一個 selected array，image/video/audio唔分開三個array，
+   由script讀URL嘅副檔名自動判斷media type：
+   - .mp4 / .mov / .webm → 判做video，順序resolve做 Video 1/2/3
+   - .wav / .mp3 / .m4a / .flac → 判做audio，順序resolve做 Audio 1/2/3
+   - 其他（.jpg/.png等） → 判做image，順序resolve做 Image 1/2...
+   三種type各自獨立由0開始計數，唔會爭用同一個編號
 4. 每次要同時輸出：
    (a) prompt文字（含{KEY} tag）
-   (b) 對應嘅selected array（順序要match tag出現次序）
-5. 內部代號({KEY})只會出現喺呢個中介tag系統，唔會直接寫死做"image1"呢類字眼
-   （resolve_assets()負責將{KEY}轉做實際image順序）
+   (b) 對應嘅selected array（順序要match tag出現次序——同一個array入面image/video/audio key可以夾埋寫，script會自動分類）
+5. 內部代號({KEY})只會出現喺呢個中介tag系統，唔會直接寫死做"image1"/"video1"/"audio1"呢類字眼
+   （make_jobs()負責將{KEY}轉做"Image N"/"Video N"/"Audio N"文字，靠URL副檔名判斷，唔係靠assets.json嘅category）
+6. 額外獨立reference：JSON可加`"ref_videos": ["URL", ...]`，用嚟放唔喺assets.json入面嘅獨立video URL
+   （呢啲唔會經{KEY} tag resolve，係直接喺build_content()加落content array，唔會出現喺prompt文字入面）
 
 JOB拆分邏輯範例
 --------------
@@ -88,25 +131,34 @@ JSON欄位如下：
 {
     "name": "JOB編號_SC場次_SHOT範圍",      // 檔名/job識別，通常對應SCENE+SHOT區間
     "active": false,                        // true=呢個JOB會被執行；false=跳過
-    "selected": ["CHAR_A", "PROP_A1", ...], // 呢個JOB用到嘅asset key，順序=tag被resolve做image1/2...嘅順序（見上方{KEY} Tag規則第3點）
-    "mode": "REFERENCE",                    // REFERENCE=用reference image生成；其他視乎API支援
+    "selected": ["CHAR_A", "PROP_A1", ...], // 呢個JOB用到嘅asset key（image/video/audio可以夾埋），順序=tag被resolve做Image N/Video N/Audio N嘅順序（見上方{KEY} Tag規則第3點）
+    "ref_videos": [],                       // 額外獨立video reference URL（唔喺assets.json），直接加落content array，唔經{KEY} tag resolve、唔會出現喺prompt文字
+    "mode": "REFERENCE",                    // REFERENCE=用reference image生成；FIRSTFRAME/LASTFRAME/FIRSTLAST=用assets.json入面FIRSTFRAME/LASTFRAME key
     "ratio": "9:16",                        // 畫面比例，固定跟STYLE BLOCK
     "duration": 12,                         // 秒數，= 呢個JOB入面所有SHOT時長總和，上限15s
     "resolution": "480p",                   // draft用低解析度，定稿先加高.
-    "seed": 2026,                           // 固定seed；retry邏輯會用random覆蓋（見RETRYABLE_ERROR_CODES）
-    "audio": "",                            // 對應音檔路徑/URL，空字串=呢條job無獨立audio
-    "content_filter": false                 // 內容審查開關
+    "seed": 851180615,                           // 固定seed；retry邏輯會用random覆蓋（見RETRYABLE_ERROR_CODES）
+    "audio": "",                            // audio_descs.json入面嘅key，用嚟lookup實際audio描述文字去填prompt入面嘅"Audio: {AUDIO}, NO BGM"；空字串=呢句填空白（呢個唔係URL，亦唔係video/audio reference用嘅selected key）
+    "content_filter": false                 // 內容審查開關（false=關閉審查，billing +10%）
 }
 
 - selected array數量/順序要同prompt .txt入面{KEY}出現次序match，錯位會導致tag對錯圖
 - duration一定要等於JOB拆分邏輯計出嚟嘅累計秒數，唔可以隨便填
 - active控制單一JOB是否被pipeline執行，方便批量開關而唔洗刪JSON
+- JOB JSON冇`negative_prompt`欄位（唔存在呢個API參數），Negative排除要寫喺.txt prompt文字最尾嗰句
 
-⚠️ MODEL LIMITATION
--------------------
-Seedance 2.0 / Seedance 2.0 Mini 不支援 negative prompt。
-"Negative:" 區塊寫落prompt文字都唔會被模型當negative指令處理。
-如需避免特定元素，改用：
-- 正面描述鎖定想要嘅結果（例如唔想zoom，就明確寫死鏡頭運動方式）
-- Preventative clause寫入正面敘述句入面，而唔係獨立Negative區塊
-  （分層方式見上方「PREVENTATIVE CLAUSE 分層規則」）
+REFERENCE 數量上限
+------------------
+- image：最多9張
+- video：最多3條，2-15s
+- audio：最多3條，≤15s
+- 三種type獨立計數，唔會爭用同一個上限
+
+⚠️ MODEL LIMITATION（更新：實測結果）
+-------------------------------------
+- JOB JSON冇獨立`negative_prompt`欄位/API參數，唔好喺JSON度加
+- 但實測證實：prompt文字最尾加一句「Negative: ...」closing line係有效嘅，
+  模型會將佢當文字層面嘅排除指令處理（唔係structured API參數，純粹prompt convention）
+- 呢句要放喺成個prompt最尾（Audio行之後），淨係用嚟收尾清理，
+  唔可以取代SHOT/STYLE入面嘅正面preventative clause（見下方規則）
+- 詳細寫法見「NEGATIVE PROMPT BLOCK 規則」
