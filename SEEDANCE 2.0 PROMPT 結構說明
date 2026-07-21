@@ -43,7 +43,7 @@ Preventative clause分三層寫入：
   → 寫入該SHOT嘅鏡頭描述句入面（正面敘述）
   例：「TRUE SLOW PUSH-IN: camera physically drifts forward... NOT a zoom, focal length stays fixed throughout.」
 - 畫面雜訊/meta元素性（blur、BGM、text overlay等，同主體/鏡頭控制無關）
-  → 寫入最尾 NEGATIVE PROMPT BLOCK（見下方詳細規則），呢層可以用negative排除寫法
+  → 寫入最尾「No X, No Y」排除句（見下方詳細規則），呢層可以用negative排除寫法
 
 Prompt Template
 ---------------
@@ -70,7 +70,7 @@ SHOT 2 — [Xs]
 [...累計最多15s...]
 
 Audio: {AUDIO}, NO BGM
-Negative: [5-8個詞，僅限artifact/meta元素，規則見下方「NEGATIVE PROMPT BLOCK 規則」]
+[NO X, NO Y — 5-8個詞，僅限artifact/meta元素，規則見下方「NEGATIVE 排除句規則」]
 
 ⚠️ AUDIO TAG 規則
 -----------------
@@ -79,23 +79,24 @@ Prompt文字output時必須keep住 "Audio: {AUDIO}, NO BGM" 呢個字面字串,
 唔可以將佢替換做audio_descs.json入面嘅實際描述內容。
 Resolve邏輯交由python script喺runtime處理,唔喺prompt生成階段做。
 
-⚠️ NEGATIVE PROMPT BLOCK 規則（新增）
--------------------------------------
+⚠️ NEGATIVE 排除句規則
+-----------------------
 位置：成個prompt最尾，Audio行之後獨立一行
-格式：`Negative: 元素1, 元素2, 元素3...`（短list，逗號分隔，唔好成句寫）
+格式：`No X, No Y, No Z...`（逐個用"No "開頭，逗號分隔）
+❌ 唔可以用 "Negative: X, Y, Z" 呢種標籤式寫法——實測證實模型唔會將"Negative:"呢個字當指令處理
 
-✅ 可以放入Negative Block（僅限「畫面雜訊/非預期元素」類）：
-- 技術性artifact：blur, jitter, flicker, frame morphing, warped face, deformed hands, extra fingers
-- 非預期meta元素：background music, BGM, text overlay, subtitles, watermark, logo
-- Style leak（防止偏離anime風格）：photorealistic, live-action, 3D render
+✅ 可以放入呢句（僅限「畫面雜訊/非預期元素」類）：
+- 技術性artifact：No blur, No jitter, No flicker, No frame morphing, No warped face, No deformed hands, No extra fingers
+- 非預期meta元素：No background music, No BGM, No text overlay, No subtitles, No watermark, No logo
+- Style leak（防止偏離anime風格）：No photorealistic, No live-action, No 3D render
 
-❌ 唔可以放入Negative Block（呢啲一定要留喺原本正面敘述位置）：
+❌ 唔可以放入呢句（呢啲一定要留喺原本正面敘述位置）：
 - 角色外觀/身份相關限制 → 一定寫喺IDENTITY LOCK BLOCK，用正面「preserve exact...」句式
 - 單一SHOT嘅鏡頭運動限制（例如「唔係zoom」）→ 留喺該SHOT描述句入面，用正面鎖定寫法
   （例：「TRUE SLOW PUSH-IN...NOT a zoom, focal length stays fixed」）
 - 全局性畫面/構圖限制（例如唔要暖色調）→ 留喺STYLE BLOCK
 
-原則：Negative Block只做「掃尾清雜訊」，唔做「主體/鏡頭控制」——
+原則：呢句只做「掃尾清雜訊」，唔做「主體/鏡頭控制」——
 呢兩樣嘢正面描述準確度遠高於negative排除，混用會削弱identity-lock同鏡頭控制嘅穩定性。
 數量：建議5-8個詞以內，太長會稀釋效果（negation overload）。
 
@@ -137,7 +138,7 @@ JSON欄位如下：
     "ratio": "9:16",                        // 畫面比例，固定跟STYLE BLOCK
     "duration": 12,                         // 秒數，= 呢個JOB入面所有SHOT時長總和，上限15s
     "resolution": "480p",                   // draft用低解析度，定稿先加高.
-    "seed": 851180615,                           // 固定seed；retry邏輯會用random覆蓋（見RETRYABLE_ERROR_CODES）
+    "seed": 2026,                           // 固定seed；retry邏輯會用random覆蓋（見RETRYABLE_ERROR_CODES）
     "audio": "",                            // audio_descs.json入面嘅key，用嚟lookup實際audio描述文字去填prompt入面嘅"Audio: {AUDIO}, NO BGM"；空字串=呢句填空白（呢個唔係URL，亦唔係video/audio reference用嘅selected key）
     "content_filter": false                 // 內容審查開關（false=關閉審查，billing +10%）
 }
@@ -145,7 +146,7 @@ JSON欄位如下：
 - selected array數量/順序要同prompt .txt入面{KEY}出現次序match，錯位會導致tag對錯圖
 - duration一定要等於JOB拆分邏輯計出嚟嘅累計秒數，唔可以隨便填
 - active控制單一JOB是否被pipeline執行，方便批量開關而唔洗刪JSON
-- JOB JSON冇`negative_prompt`欄位（唔存在呢個API參數），Negative排除要寫喺.txt prompt文字最尾嗰句
+- JOB JSON冇`negative_prompt`欄位（唔存在呢個API參數），排除句要寫喺.txt prompt文字最尾（"No X, No Y"格式）
 
 REFERENCE 數量上限
 ------------------
@@ -157,8 +158,9 @@ REFERENCE 數量上限
 ⚠️ MODEL LIMITATION（更新：實測結果）
 -------------------------------------
 - JOB JSON冇獨立`negative_prompt`欄位/API參數，唔好喺JSON度加
-- 但實測證實：prompt文字最尾加一句「Negative: ...」closing line係有效嘅，
-  模型會將佢當文字層面嘅排除指令處理（唔係structured API參數，純粹prompt convention）
+- Prompt文字入面亦唔可以用"Negative: X, Y, Z"呢種標籤式寫法，實測模型唔會識別
+- 但實測證實：prompt文字最尾寫「No X, No Y, No Z」呢種逐個排除句係有效嘅
+  （純粹prompt文字慣例，唔係structured API參數）
 - 呢句要放喺成個prompt最尾（Audio行之後），淨係用嚟收尾清理，
   唔可以取代SHOT/STYLE入面嘅正面preventative clause（見下方規則）
-- 詳細寫法見「NEGATIVE PROMPT BLOCK 規則」
+- 詳細寫法見「NEGATIVE 排除句規則」
