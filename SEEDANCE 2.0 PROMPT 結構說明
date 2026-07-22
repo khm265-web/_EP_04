@@ -138,7 +138,7 @@ JSON欄位如下：
     "ratio": "9:16",                        // 畫面比例，固定跟STYLE BLOCK
     "duration": 12,                         // 秒數，= 呢個JOB入面所有SHOT時長總和，上限15s
     "resolution": "480p",                   // draft用低解析度，定稿先加高.
-    "seed": 2026,                           // 固定seed；retry邏輯會用random覆蓋（見RETRYABLE_ERROR_CODES）
+    "seed": 851180615,                           // 固定seed；retry邏輯會用random覆蓋（見RETRYABLE_ERROR_CODES）
     "audio": "",                            // audio_descs.json入面嘅key，用嚟lookup實際audio描述文字去填prompt入面嘅"Audio: {AUDIO}, NO BGM"；空字串=呢句填空白（呢個唔係URL，亦唔係video/audio reference用嘅selected key）
     "content_filter": false                 // 內容審查開關（false=關閉審查，billing +10%）
 }
